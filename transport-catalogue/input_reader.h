@@ -8,13 +8,8 @@
 
 struct CommandDescription {
     // Определяет, задана ли команда (поле command непустое)
-    explicit operator bool() const {
-        return !command.empty();
-    }
-
-    bool operator!() const {
-        return !operator bool();
-    }
+    explicit operator bool() const;
+    bool operator!() const;
 
     std::string command;      // Название команды
     std::string id;           // id маршрута или остановки
