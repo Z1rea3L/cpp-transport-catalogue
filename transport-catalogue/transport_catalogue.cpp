@@ -3,7 +3,7 @@
 
 namespace transport_catalogue
 {
-    void TransportCatalogue::AddStop(std::string_view stop_name, const geo::Coordinates coordinates){
+    void TransportCatalogue::AddStop(std::string_view stop_name, const geo::Coordinates& coordinates){
         Stop temp_stop;
         temp_stop.name = stop_name;
         temp_stop.coordinates = coordinates;
@@ -14,7 +14,7 @@ namespace transport_catalogue
     }
 
     const Stop* TransportCatalogue::FindStop(std::string_view stop_name)const{
-        if(stopname_to_stop_.count(stop_name) != 0){
+        if(stopname_to_stop_.contains(stop_name)){
             return stopname_to_stop_.at(stop_name);
         }
         return nullptr;
@@ -41,7 +41,7 @@ namespace transport_catalogue
     }
 
     const Bus* TransportCatalogue::FindBus(std::string_view bus_name)const{
-        if(busname_to_bus_.count(bus_name) != 0){
+        if(busname_to_bus_.contains(bus_name)){
             return busname_to_bus_.at(bus_name);
         }
         return nullptr;
@@ -49,14 +49,14 @@ namespace transport_catalogue
 
     double TransportCatalogue::GetBusDistance(const Bus* bus)const{
         double result = 0.;
-        for(int i = 0; i< (bus->stops.size())-1; ++i){
+        const int counter = (bus->stops.size())-1;
+        for(int i = 0; i< counter; ++i){
             result+=geo::ComputeDistance(bus->stops[i]->coordinates,bus->stops[i+1]->coordinates);
         }
         return result;
     }
 
     std::set<std::string_view> TransportCatalogue::GetBusesOfStop(const Stop* stop)const{
-        if(stop_to_busname_.count(stop)==0)return {};
         return stop_to_busname_.at(stop);
     }
 }
