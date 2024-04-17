@@ -26,7 +26,7 @@ struct Bus {
 class TransportCatalogue {
     public:
     
-    void AddStop(std::string_view stop_name, const geo::Coordinates coordinates);
+	void AddStop(std::string_view stop_name, const geo::Coordinates& coordinates);
     const Stop* FindStop(std::string_view stop_name)const;
     
     void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops);
