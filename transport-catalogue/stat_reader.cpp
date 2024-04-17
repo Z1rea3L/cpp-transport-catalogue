@@ -4,11 +4,9 @@ void ParseAndPrintStat(const transport_catalogue::TransportCatalogue& transport_
     
     std::string_view parsed_request = request.substr(0, request.find(' '));
     std::string_view request_data = request.substr(request.find(' ')+1,request.size());
-    
-    //output<<"|"<<parsed_request<<"|"<<" {"<<request_data<<"} ";
-    
+
     if(parsed_request == "Bus"){
-        auto bus = transport_catalogue.FindBus(request_data);
+        const auto bus = transport_catalogue.FindBus(request_data);
         if(bus==nullptr){
             output<<request<<": not found"<<std::endl;
         }else{
@@ -20,7 +18,7 @@ void ParseAndPrintStat(const transport_catalogue::TransportCatalogue& transport_
     }
     
     if(parsed_request == "Stop"){
-        auto stop = transport_catalogue.FindStop(request_data);
+        const auto stop = transport_catalogue.FindStop(request_data);
         if(stop==nullptr){
             output<<request<<": not found"<<std::endl;
             
