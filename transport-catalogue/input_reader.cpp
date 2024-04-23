@@ -4,7 +4,6 @@
 #include <cassert>
 #include <iterator>
 
-
 CommandDescription::operator bool() const {
     return !command.empty();
 }
@@ -15,7 +14,7 @@ bool CommandDescription::operator!() const {
 
 /**
  * Парсит строку вида "10.123,  -30.1837" и возвращает пару координат (широта, долгота)
- */
+*/
 
 geo::Coordinates ParseCoordinates(std::string_view str) {
     static const double nan = std::nan("");
@@ -112,19 +111,46 @@ void InputReader::ParseLine(std::string_view line) {
     }
 }
 
+std::deque<std::pair<int, std::string>>ParseStopDescription(std::string description){
+    std::vector<std::string_view> splited_description = Split(description, ',');
+    if(splited_description.size()<=2){// первые 2 элемента это координаты, если больше ничего нет возврат пустоты
+        return {};
+    }
+    std::deque<std::pair<int, std::string>> result;  //дек (расстояние - остановка)
+
+    const size_t vec_size = splited_description.size();
+
+    for(size_t i = 1; i<vec_size; ++i){ //первые 2 элемента это координаты, начинаем с третьего элемента
+        std::string temp{splited_description[i].data(),splited_description[i].size()};
+        int distance = std::stoi(temp.substr(0, temp.find('m')));
+        std::string stop_name = temp.substr(temp.find('o')+2);
+        result.push_back({distance, stop_name});
+    }
+
+    return result;
+}  
+    
 void InputReader::ApplyCommands([[maybe_unused]]transport_catalogue::TransportCatalogue& catalogue) const {
+  std::unordered_map <std::string_view, std::deque<std::pair<int, std::string>>> stop_to_stop_distances; //остановка - дек(расстояние-остановка)
   for(const auto& request : commands_) {
         if(request.command == "Stop") {
             catalogue.AddStop(request.id, ParseCoordinates(request.description));
+            stop_to_stop_distances[request.id]=ParseStopDescription(request.description);
         }else{
             continue;
         }
     }
-    for(const auto& request : commands_) {
+   for(const auto& request : commands_) {
         if(request.command == "Bus") {
             catalogue.AddBus(request.id, ParseRoute(request.description));
         }else{
             continue;
+        }
+    }
+
+    for(const auto& [stop_first, deque_of_stops]:stop_to_stop_distances){ // заполняем расстояния между остановками
+        for(const auto& [distance, stop_second]:deque_of_stops){
+            catalogue.SetStopsDistance(catalogue.FindStop(stop_first),catalogue.FindStop(stop_second),distance);
         }
     }
 }
