@@ -10,10 +10,12 @@ void ParseAndPrintStat(const transport_catalogue::TransportCatalogue& transport_
         if(bus==nullptr){
             output<<request<<": not found"<<std::endl;
         }else{
-            output<<request<<": "<<bus->stops.size()
-                   <<" stops on route, "<< bus->unique_stops.size()
-                   <<" unique stops, " << transport_catalogue.GetBusDistance(bus)
-                   <<" route length"<<std::endl;
+            std::pair<int,double> dist_and_curvature = transport_catalogue.GetBusDistAndCurvature(bus);
+            output<<request<<": "<<bus->stops.size()<<" stops on route, "
+                << bus->unique_stops.size()<<" unique stops, " 
+                << dist_and_curvature.first<<" route length, "
+                << dist_and_curvature.second<<" curvature"
+                << std::endl;
         }
     }
     
