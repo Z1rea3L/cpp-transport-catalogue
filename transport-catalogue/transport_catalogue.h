@@ -32,11 +32,22 @@ class TransportCatalogue {
     void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops);
     const Bus* FindBus(std::string_view bus_name)const;
     
-    double GetBusDistance(const Bus* bus)const;
-    
+    //int GetBusDistance(const Bus* bus)const{
+    std::pair<int, double> GetBusDistAndCurvature(const Bus* bus)const;
+        
     std::set<std::string_view> GetBusesOfStop(const Stop* stop)const;
     
+    void SetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs, int distance);
+    int GetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs)const;
     private:
+    
+    struct StopsDistanceHasher {
+        size_t operator()(const std::pair <const Stop*, const Stop*> stops) const {
+            size_t stop_first_hash = std::hash<const void*>{}(stops.first);
+            size_t stop_second_hash = std::hash<const void*>{}(stops.second);
+            return stop_first_hash + stop_second_hash; 
+        }
+    };
     
     void FillStopname_To_Bus(const Bus* bus);
     
@@ -47,5 +58,7 @@ class TransportCatalogue {
     std::unordered_map<std::string_view, const Bus*, std::hash<std::string_view> > busname_to_bus_;
 
     std::unordered_map<const Stop*, std::set<std::string_view>> stop_to_busname_;
+    
+    std::unordered_map<std::pair<const Stop*, const Stop*>, int, StopsDistanceHasher> stops_distances_;
 };
 }
