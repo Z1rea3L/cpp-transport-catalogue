@@ -111,7 +111,7 @@ void InputReader::ParseLine(std::string_view line) {
     }
 }
 
-std::deque<std::pair<int, std::string>>ParseStopDescription(std::string description){
+std::deque<std::pair<int, std::string>>ParseDistancesToStops(std::string description){
     std::vector<std::string_view> splited_description = Split(description, ',');
     if(splited_description.size()<=2){// первые 2 элемента это координаты, если больше ничего нет возврат пустоты
         return {};
@@ -135,7 +135,8 @@ void InputReader::ApplyCommands([[maybe_unused]]transport_catalogue::TransportCa
   for(const auto& request : commands_) {
         if(request.command == "Stop") {
             catalogue.AddStop(request.id, ParseCoordinates(request.description));
-            stop_to_stop_distances[request.id]=ParseStopDescription(request.description);
+            //заполняем для остановки расстояния до других остановок
+            stop_to_stop_distances[request.id]=ParseDistancesToStops(request.description);
         }else{
             continue;
         }
