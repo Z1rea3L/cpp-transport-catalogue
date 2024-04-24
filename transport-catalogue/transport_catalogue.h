@@ -49,7 +49,7 @@ class TransportCatalogue {
         }
     };
     
-    void FillStopname_To_Bus(const Bus* bus);
+    void FillStopnameToBus(const Bus* bus);
     
     std::deque<Stop> all_stops_;
     std::unordered_map<std::string_view, const Stop*, std::hash<std::string_view> > stopname_to_stop_;
