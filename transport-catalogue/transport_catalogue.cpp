@@ -21,7 +21,7 @@ namespace transport_catalogue
         return nullptr;
     }
 
-    void TransportCatalogue::FillStopname_To_Bus(const Bus* bus){
+    void TransportCatalogue::FillStopnameToBus(const Bus* bus){
         for(const Stop* stop: bus->stops){
             stop_to_busname_[stop].insert(bus->name);
         }
@@ -38,7 +38,7 @@ namespace transport_catalogue
         all_buses_.push_back(std::move(temp_bus));
         busname_to_bus_.insert({all_buses_.back().name,&all_buses_.back()});
 
-        FillStopname_To_Bus(&all_buses_.back());
+        FillStopnameToBus(&all_buses_.back());
     }
 
     const Bus* TransportCatalogue::FindBus(std::string_view bus_name)const{
