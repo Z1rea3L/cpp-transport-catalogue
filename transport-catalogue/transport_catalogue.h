@@ -32,7 +32,6 @@ class TransportCatalogue {
     void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops);
     const Bus* FindBus(std::string_view bus_name)const;
     
-    //int GetBusDistance(const Bus* bus)const{
     std::pair<int, double> GetBusDistAndCurvature(const Bus* bus)const;
         
     std::set<std::string_view> GetBusesOfStop(const Stop* stop)const;
