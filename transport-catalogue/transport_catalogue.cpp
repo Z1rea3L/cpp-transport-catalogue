@@ -27,12 +27,15 @@ namespace transport_catalogue
         }
     }
 
-    void TransportCatalogue::AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops){
+    void TransportCatalogue::AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool is_circular){
         Bus temp_bus;
         temp_bus.name = bus_name;
+        temp_bus.is_circular = is_circular;
         for(const std::string_view& stop : stops){
-            temp_bus.stops.push_back(stopname_to_stop_.at(stop));
-            temp_bus.unique_stops.insert(stopname_to_stop_.at(stop));
+            if(stopname_to_stop_.contains(stop)){
+                temp_bus.stops.push_back(stopname_to_stop_.at(stop));
+                temp_bus.unique_stops.insert(stopname_to_stop_.at(stop));
+            }
         }
 
         all_buses_.push_back(std::move(temp_bus));
@@ -63,6 +66,14 @@ namespace transport_catalogue
             return stops_distances_.at({stop_rhs,stop_lhs});
         }
         return 0;
+    }
+
+    std::unordered_map<std::string_view, Stop*> TransportCatalogue::GetStopsMap() const{
+        return stopname_to_stop_;
+    }
+
+    std::unordered_map<std::string_view, Bus*> TransportCatalogue::GetBusesMap() const{
+        return busname_to_bus_;
     }
     
     std::pair<int,double> TransportCatalogue::GetBusDistAndCurvature(const Bus* bus)const{

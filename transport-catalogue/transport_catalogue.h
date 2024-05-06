@@ -2,26 +2,15 @@
 
 #include "geo.h"
 #include <deque>
-#include <vector>
-#include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <optional>
 #include <set>
+#include "domain.h"
+
+using namespace domain;
 
 namespace transport_catalogue
 {
-
-struct Stop {
-    std::string name;     
-    geo::Coordinates coordinates;
-};
- 
-struct Bus {
-    std::string name;
-    std::vector<const Stop*>stops;
-    std::unordered_set<const Stop*> unique_stops;
-};
 
 class TransportCatalogue {
     public:
@@ -29,7 +18,7 @@ class TransportCatalogue {
 	void AddStop(std::string_view stop_name, const geo::Coordinates& coordinates);
     const Stop* FindStop(std::string_view stop_name)const;
     
-    void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops);
+    void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool is_circular);
     const Bus* FindBus(std::string_view bus_name)const;
     
     std::pair<int, double> GetBusDistAndCurvature(const Bus* bus)const;
@@ -38,6 +27,10 @@ class TransportCatalogue {
     
     void SetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs, int distance);
     int GetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs)const;
+
+    std::unordered_map<std::string_view, Stop*> GetStopsMap()const;
+    std::unordered_map<std::string_view, Bus*> GetBusesMap()const;
+
     private:
     
     struct StopsDistanceHasher {
@@ -51,10 +44,10 @@ class TransportCatalogue {
     void FillStopnameToBus(const Bus* bus);
     
     std::deque<Stop> all_stops_;
-    std::unordered_map<std::string_view, const Stop*, std::hash<std::string_view> > stopname_to_stop_;
+    std::unordered_map<std::string_view, Stop*, std::hash<std::string_view> > stopname_to_stop_;
     
     std::deque<Bus> all_buses_;
-    std::unordered_map<std::string_view, const Bus*, std::hash<std::string_view> > busname_to_bus_;
+    std::unordered_map<std::string_view, Bus*, std::hash<std::string_view> > busname_to_bus_;
 
     std::unordered_map<const Stop*, std::set<std::string_view>> stop_to_busname_;
     
