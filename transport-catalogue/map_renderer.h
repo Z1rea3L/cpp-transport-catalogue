@@ -103,17 +103,16 @@ public:
     explicit MapRenderer() = default;
     void SetRenderSettings(RendererSettings& settings);
     void Render(std::ostream& out, std::vector<domain::Bus*> route);
-
+    RendererSettings GetRenderSettings()const;
 
 private:
-    void AddRouteLine(std::map<std::string_view, std::vector<domain::Stop*>>& map_geo_coords);
-    void AddRouteName(std::map<std::string_view, std::pair<geo::Coordinates, geo::Coordinates>>& start_end_of_route);
-    void AddStop(std::map<std::string_view, geo::Coordinates>& stop);
-    void AddStopName(std::map<std::string_view, geo::Coordinates>& stop);
+    void AddRouteLine(std::map<std::string_view, std::vector<domain::Stop*>>& map_geo_coords, svg::Document& map_);
+    void AddRouteName(std::map<std::string_view, std::pair<geo::Coordinates, geo::Coordinates>>& start_end_of_route, svg::Document& map_);
+    void AddStop(std::map<std::string_view, geo::Coordinates>& stop, svg::Document& map_);
+    void AddStopName(std::map<std::string_view, geo::Coordinates>& stop, svg::Document& map_);
 
     RendererSettings settings_ {};
     SphereProjector projector_{};
-    svg::Document map_{};
     void SetBusText(svg::Text &text, svg::Text &subtext, const svg::Point &coordinates, std::string_view name, size_t color_num);
 };
 

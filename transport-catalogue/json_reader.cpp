@@ -3,12 +3,17 @@
 
 namespace json_reader {
 
-    JsonReader::JsonReader(std::istream& input, std::ostream& output)
-            : input_(json::Load(input))
-            , output_(output)
-    {
+    JsonReader::JsonReader(std::istream& input){
+        ReadJson(input);
+    }
+    
+    void JsonReader::ReadJson(std::istream& input){
+        json::Document input_ = json::Load(input);
+        if(!base_requests_.empty())base_requests_.clear();//если снова вызываем чтение - чистим базу запросов
+        if(!stat_requests_.empty())stat_requests_.clear();
+        
         if(input_.GetRoot().AsMap().contains("base_requests")){
-            MakeBase(input_.GetRoot().AsMap().at("base_requests"));
+            ParseDataRequests(input_.GetRoot().AsMap().at("base_requests"));
         }
                 
         if(input_.GetRoot().AsMap().contains("stat_requests")){
@@ -19,7 +24,18 @@ namespace json_reader {
             ParseRenderSettings(input_.GetRoot().AsMap().at("render_settings").AsMap());
         }
         
-        request_handler::RequestHandler handler_(base_requests_, stat_requests_, render_data_);
+    }
+    
+    const std::deque<domain::RequestToAdd> JsonReader::GetDataBase()const{
+        return base_requests_;
+    }
+    
+    const std::deque<domain::RequestToStat> JsonReader::GetRequestBase()const{
+        return stat_requests_;
+    }
+    
+    map_renderer::RendererSettings JsonReader::GetRenderSettings()const{
+        return render_data_;
     }
     
     svg::Color ParsingColor(const json::Node& node){
@@ -69,7 +85,7 @@ namespace json_reader {
         
     }
     
-    void JsonReader::MakeBase(const json::Node& arr_base){
+    void JsonReader::ParseDataRequests(const json::Node& arr_base){
 
         for(const auto& elem :arr_base.AsArray()){
             if(elem.AsMap().at("type").AsString()=="Stop"){

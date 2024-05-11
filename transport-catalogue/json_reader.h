@@ -8,18 +8,17 @@ namespace json_reader {
 
     class JsonReader {
     public:
-        explicit JsonReader(std::istream& input, std::ostream& output);
-
+        explicit JsonReader(std::istream& input);
+        void ReadJson(std::istream& input);
+        const std::deque<domain::RequestToAdd> GetDataBase()const;
+        const std::deque<domain::RequestToStat> GetRequestBase()const;
+        map_renderer::RendererSettings GetRenderSettings()const;
     private:
-        void ParseRenderSettings(const std::map<std::string,json::Node>& settings);
-        void ParseStopRequest(const std::map<std::string,json::Node>& stop_request);
-        void ParseBusRequest(const std::map<std::string,json::Node>& bus_request);
-        void ParseStatRequests(const json::Node& requests);
-        void MakeBase(const json::Node& arr_requests);
-        std::vector<std::string_view> ParseBusRoute(const std::vector<std::string>& stops, bool is_roundtrip)const;
-
-        json::Document input_;
-        std::ostream& output_;
+        void ParseRenderSettings(const std::map<std::string,json::Node>& settings);//парсим настройки рендера
+        void ParseStopRequest(const std::map<std::string,json::Node>& stop_request);//парсим входные данные с типом Stop
+        void ParseBusRequest(const std::map<std::string,json::Node>& bus_request);//парсим входные данные с типом Bus
+        void ParseStatRequests(const json::Node& requests); //парсим запросы для вывода и сохраняем для дальнейшей обработки
+        void ParseDataRequests(const json::Node& arr_requests); //парсим входные данные и сохраняем для дальнейшей обработки
 
         std::deque<domain::RequestToAdd> base_requests_;
         std::deque<domain::RequestToStat> stat_requests_;

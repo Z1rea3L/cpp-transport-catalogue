@@ -134,8 +134,7 @@ public:
         return AsOwner();
     }
 
-    //çàäàåò öâåò êîíòóðà
-        Owner& SetStrokeColor(const Color& color) {
+    Owner& SetStrokeColor(const Color& color) {
         stroke_color_ = color;
         return AsOwner();
     }

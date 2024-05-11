@@ -17,24 +17,10 @@ public:
     using runtime_error::runtime_error;
 };
 
-class Node final {
+class Node final : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
 public:
-    using Value = std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>;
-
-    Node() = default;
-    Node(std::nullptr_t);
-
-    Node(int val);
-
-    Node(double val);
-
-    Node(std::string val);
-
-    Node(Array val);
-
-    Node(Dict val);
-
-    Node(bool val);
+    using variant::variant;
+    using Value = variant;
 
     bool IsInt() const;
 
@@ -68,8 +54,6 @@ public:
 
     const Value& GetValue() const;
 
-private:
-    Value value_;
 };
 
 inline bool operator!=(const Node& lhs, const Node& rhs) {

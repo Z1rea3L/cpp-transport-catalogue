@@ -13,9 +13,15 @@ void MapRenderer::SetRenderSettings(RendererSettings& settings)
 {
     settings_=settings;
 }
-
+    
+RendererSettings MapRenderer::GetRenderSettings()const{
+    return settings_;
+}
+    
 void MapRenderer::Render(std::ostream& out, std::vector<domain::Bus*> buses)
 {
+    svg::Document map_;
+    
     std::map<std::string_view, std::pair<geo::Coordinates, geo::Coordinates>> start_end_of_route;
     for (const auto route : buses) {
         auto start_end_stop = std::make_pair(route->stops[0]->coordinates,
@@ -45,18 +51,18 @@ void MapRenderer::Render(std::ostream& out, std::vector<domain::Bus*> buses)
 
     projector_ = SphereProjector{ geo_coords.begin(), geo_coords.end(), settings_.width_, settings_.height_, settings_.padding_ };
 
-    AddRouteLine(map_geo_coords);
+    AddRouteLine(map_geo_coords, map_);
 
-    AddRouteName(start_end_of_route);
+    AddRouteName(start_end_of_route, map_);
 
-    AddStop(uniq_stops);
+    AddStop(uniq_stops, map_);
 
-    AddStopName(uniq_stops);
+    AddStopName(uniq_stops, map_);
 
     map_.Render(out);
 }
 
-void MapRenderer::AddRouteLine(std::map<std::string_view, std::vector<domain::Stop*>>& map_geo_coords)
+void MapRenderer::AddRouteLine(std::map<std::string_view, std::vector<domain::Stop*>>& map_geo_coords, svg::Document& map_)
 {
     size_t color_num = 0;
     for (const auto& [name, stop] : map_geo_coords) {
@@ -101,7 +107,7 @@ void MapRenderer::SetBusText(svg::Text& text, svg::Text& subtext, const svg::Poi
     subtext.SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
 }
 
-void MapRenderer::AddRouteName(std::map<std::string_view, std::pair<geo::Coordinates, geo::Coordinates>>& start_end_of_route)
+void MapRenderer::AddRouteName(std::map<std::string_view, std::pair<geo::Coordinates, geo::Coordinates>>& start_end_of_route, svg::Document& map_)
 {
     size_t color_num = 0;
 
@@ -129,7 +135,7 @@ void MapRenderer::AddRouteName(std::map<std::string_view, std::pair<geo::Coordin
     }
 }
 
-void MapRenderer::AddStopName(std::map<std::string_view, geo::Coordinates>& stop)
+void MapRenderer::AddStopName(std::map<std::string_view, geo::Coordinates>& stop, svg::Document& map_)
 {
     for (const auto& [name, coord] : stop) {
 
@@ -159,7 +165,7 @@ void MapRenderer::AddStopName(std::map<std::string_view, geo::Coordinates>& stop
     }
 }
 
-void MapRenderer::AddStop(std::map<std::string_view, geo::Coordinates>& stop)
+void MapRenderer::AddStop(std::map<std::string_view, geo::Coordinates>& stop, svg::Document& map_)
 {
     for (const auto& [name, coord] : stop) {
 

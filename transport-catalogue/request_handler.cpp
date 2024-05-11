@@ -3,18 +3,16 @@
 
 namespace request_handler {
     
-RequestHandler::RequestHandler(const std::deque<domain::RequestToAdd>& base_requests,
-                               const std::deque<domain::RequestToStat>& stat_requests,
-                               map_renderer::RendererSettings& render_data){
-
-    MakeTransportCatalogueBase(base_requests);
-    render_.SetRenderSettings(render_data);
-    ProcessStatRequests(stat_requests);
-
+RequestHandler::RequestHandler(transport_catalogue::TransportCatalogue& transport_catalogue)
+    :transport_catalogue_(transport_catalogue){
 
 }
+    
+void RequestHandler::SetRenderSettings(map_renderer::RendererSettings settings){
+    render_.SetRenderSettings(settings);
+}
 
-void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>& stat_requests){
+void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>& stat_requests,std::ostream& output){
     std::vector<json::Node> result;
     for(const auto& request : stat_requests){
         
@@ -32,7 +30,7 @@ void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>
     }
     json::Node node_result(std::move(result));
     json::Document doc(node_result);
-    json::Print(doc,std::cout);
+    json::Print(doc,output);
 }   
     
 json::Node RequestHandler::ParseBusInfo(const domain::RequestToStat& request)const{
@@ -72,7 +70,7 @@ json::Node RequestHandler::ParseStopInfo(const domain::RequestToStat& request)co
     return json::Node(stop_info);
 }
 
-void RequestHandler::MakeTransportCatalogueBase(const std::deque<domain::RequestToAdd>& base_requests_){
+void RequestHandler::FillCatalogue(const std::deque<domain::RequestToAdd>& base_requests_){
     for(const auto& elem : base_requests_){
         if(elem.type==domain::RequestType::add_stop){
             transport_catalogue_.AddStop(elem.name, elem.coordinates);
@@ -123,7 +121,7 @@ json::Node RequestHandler::RenderMap(const domain::RequestToStat& request){
     std::sort(vec.begin(),vec.end(),[](auto lhs, auto rhs){
         return lhs->name < rhs->name;
     });
-
+    
     std::ostringstream strm;
     render_.Render(strm, vec);
 
