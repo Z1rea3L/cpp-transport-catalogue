@@ -98,4 +98,32 @@ void Builder::AddObject(Node::Value value, bool one_shot) {
     }
 }
 
+    Node Builder::BaseContext::Build() {
+        return builder_.Build();
+    }
+    
+    Builder::DictValueContext Builder::BaseContext::Key(std::string key) {
+        return builder_.Key(std::move(key));
+    }
+    
+    Builder::BaseContext Builder::BaseContext::Value(Node::Value value) {
+        return builder_.Value(std::move(value));
+    }
+    
+    Builder::DictItemContext Builder::BaseContext::StartDict() {
+        return builder_.StartDict();
+    }
+    
+    Builder::ArrayItemContext Builder::BaseContext::StartArray() {
+        return builder_.StartArray();
+    }
+    
+    Builder::BaseContext Builder::BaseContext::EndDict() {
+        return builder_.EndDict();
+    }
+    
+    Builder::BaseContext Builder::BaseContext::EndArray() {
+        return builder_.EndArray();
+    }
+    
 }  // namespace json

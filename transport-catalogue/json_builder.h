@@ -36,27 +36,13 @@ private:
     class BaseContext {
     public:
         BaseContext(Builder& builder) : builder_(builder) {}
-        Node Build() {
-            return builder_.Build();
-        }
-        DictValueContext Key(std::string key) {
-            return builder_.Key(std::move(key));
-        }
-        BaseContext Value(Node::Value value) {
-            return builder_.Value(std::move(value));
-        }
-        DictItemContext StartDict() {
-            return builder_.StartDict();
-        }
-        ArrayItemContext StartArray() {
-            return builder_.StartArray();
-        }
-        BaseContext EndDict() {
-            return builder_.EndDict();
-        }
-        BaseContext EndArray() {
-            return builder_.EndArray();
-        }
+        Node Build();
+        DictValueContext Key(std::string key);
+        BaseContext Value(Node::Value value);
+        DictItemContext StartDict();
+        ArrayItemContext StartArray();
+        BaseContext EndDict();
+        BaseContext EndArray();
     private:
         Builder& builder_;
     };
