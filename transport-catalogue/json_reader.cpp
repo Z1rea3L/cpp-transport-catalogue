@@ -1,5 +1,4 @@
 #include "json_reader.h"
-#include "request_handler.h"
 
 namespace json_reader {
 
@@ -12,16 +11,16 @@ namespace json_reader {
         if(!base_requests_.empty())base_requests_.clear();//если снова вызываем чтение - чистим базу запросов
         if(!stat_requests_.empty())stat_requests_.clear();
         
-        if(input_.GetRoot().AsMap().contains("base_requests")){
-            ParseDataRequests(input_.GetRoot().AsMap().at("base_requests"));
+        if(input_.GetRoot().AsDict().contains("base_requests")){
+            ParseDataRequests(input_.GetRoot().AsDict().at("base_requests"));
         }
                 
-        if(input_.GetRoot().AsMap().contains("stat_requests")){
-            ParseStatRequests(input_.GetRoot().AsMap().at("stat_requests"));
+        if(input_.GetRoot().AsDict().contains("stat_requests")){
+            ParseStatRequests(input_.GetRoot().AsDict().at("stat_requests"));
         }
                 
-        if(input_.GetRoot().AsMap().contains("render_settings")){
-            ParseRenderSettings(input_.GetRoot().AsMap().at("render_settings").AsMap());
+        if(input_.GetRoot().AsDict().contains("render_settings")){
+            ParseRenderSettings(input_.GetRoot().AsDict().at("render_settings").AsDict());
         }
         
     }
@@ -88,11 +87,11 @@ namespace json_reader {
     void JsonReader::ParseDataRequests(const json::Node& arr_base){
 
         for(const auto& elem :arr_base.AsArray()){
-            if(elem.AsMap().at("type").AsString()=="Stop"){
-                ParseStopRequest(elem.AsMap());
+            if(elem.AsDict().at("type").AsString()=="Stop"){
+                ParseStopRequest(elem.AsDict());
             }
-            if(elem.AsMap().at("type").AsString()=="Bus"){
-                ParseBusRequest(elem.AsMap());
+            if(elem.AsDict().at("type").AsString()=="Bus"){
+                ParseBusRequest(elem.AsDict());
             }
         } 
     }
@@ -106,7 +105,7 @@ namespace json_reader {
         req.coordinates={stop_request.at("latitude").AsDouble(),
                             stop_request.at("longitude").AsDouble()};
 
-        for(const auto& [name, dist] : stop_request.at("road_distances").AsMap()){
+        for(const auto& [name, dist] : stop_request.at("road_distances").AsDict()){
             temp.insert({name , dist.AsInt()});
         }
 
@@ -134,22 +133,22 @@ namespace json_reader {
         for(const auto& elem : requests.AsArray()){
             domain::RequestToStat req;
 
-            if(elem.AsMap().at("type").AsString()=="Bus"){
+            if(elem.AsDict().at("type").AsString()=="Bus"){
                 req.type = domain::RequestType::find_bus;
-                req.name = elem.AsMap().at("name").AsString();
-                req.id = elem.AsMap().at("id").AsInt();
+                req.name = elem.AsDict().at("name").AsString();
+                req.id = elem.AsDict().at("id").AsInt();
             }
 
-            if(elem.AsMap().at("type").AsString()=="Stop"){
+            if(elem.AsDict().at("type").AsString()=="Stop"){
                 req.type = domain::RequestType::find_stop;
-                req.name = elem.AsMap().at("name").AsString();
-                req.id = elem.AsMap().at("id").AsInt();
+                req.name = elem.AsDict().at("name").AsString();
+                req.id = elem.AsDict().at("id").AsInt();
             }
 
-            if(elem.AsMap().at("type").AsString()=="Map"){
+            if(elem.AsDict().at("type").AsString()=="Map"){
                 req.type = domain::RequestType::render_map;
                 req.name = "map";
-                req.id = elem.AsMap().at("id").AsInt();
+                req.id = elem.AsDict().at("id").AsInt();
             }
 
             stat_requests_.push_back(std::move(req));

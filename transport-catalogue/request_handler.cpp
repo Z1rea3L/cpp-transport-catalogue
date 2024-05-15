@@ -12,62 +12,77 @@ void RequestHandler::SetRenderSettings(map_renderer::RendererSettings settings){
     render_.SetRenderSettings(settings);
 }
 
-void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>& stat_requests,std::ostream& output){
-    std::vector<json::Node> result;
+void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>& stat_requests, std::ostream& output){
+    json::Array result;
+    result.reserve(stat_requests.size());
     for(const auto& request : stat_requests){
         
         if(request.type == domain::RequestType::find_bus){
-           result.push_back(RequestHandler::ParseBusInfo(request));
+           result.push_back(RequestHandler::ParseBusInfo(request).GetRoot());
         }
         
         if(request.type == domain::RequestType::find_stop){
-            result.push_back(RequestHandler::ParseStopInfo(request)); 
+            result.push_back(RequestHandler::ParseStopInfo(request).GetRoot()); 
         }
 
         if(request.type == domain::RequestType::render_map){
-            result.push_back(RenderMap(request));
+            result.push_back(RenderMap(request).GetRoot());
         }
     }
-    json::Node node_result(std::move(result));
-    json::Document doc(node_result);
-    json::Print(doc,output);
+    json::Print(json::Document{result}, output);
 }   
     
-json::Node RequestHandler::ParseBusInfo(const domain::RequestToStat& request)const{
+json::Document RequestHandler::ParseBusInfo(const domain::RequestToStat& request)const{
     const auto bus = transport_catalogue_.FindBus(request.name);
-    std::map<std::string, json::Node> bus_info;
-    bus_info.insert({"request_id", json::Node(request.id)});
-    
-    if(bus==nullptr){
-        bus_info.insert({"error_message", json::Node(std::string("not found"))});
-        
-    }else{
-         std::pair<int,double> dist_and_curvature = transport_catalogue_.GetBusDistAndCurvature(bus);
-         bus_info.insert({"curvature", json::Node(dist_and_curvature.second)});
-         bus_info.insert({"route_length", json::Node(dist_and_curvature.first)});
-         bus_info.insert({"stop_count", json::Node(static_cast<int>(bus->stops.size()))});
-         bus_info.insert({"unique_stop_count", json::Node(static_cast<int>(bus->unique_stops.size()))});
-    }
-    return json::Node(bus_info);
+    if (bus == nullptr) {
+            return json::Document(
+                json::Builder()
+                .StartDict()
+                .Key("request_id").Value(request.id)
+                .Key("error_message").Value("not found")
+                .EndDict()
+                .Build());
+        }
+        else {
+            std::pair<int,double> dist_and_curvature = transport_catalogue_.GetBusDistAndCurvature(bus);
+            return json::Document(
+                json::Builder()
+                .StartDict()
+                .Key("request_id").Value(request.id)
+                .Key("curvature").Value(dist_and_curvature.second)
+                .Key("route_length").Value(dist_and_curvature.first)
+                .Key("stop_count").Value(static_cast<int>(bus->stops.size()))
+                .Key("unique_stop_count").Value(static_cast<int>(bus->unique_stops.size()))
+                .EndDict()
+                .Build());
+        }
 }
     
-json::Node RequestHandler::ParseStopInfo(const domain::RequestToStat& request)const{
+json::Document RequestHandler::ParseStopInfo(const domain::RequestToStat& request)const{
     const auto stop = transport_catalogue_.FindStop(request.name);
-    std::map<std::string, json::Node> stop_info;
-    stop_info.insert({"request_id", json::Node(request.id)});
     
-    if(stop==nullptr){
-        stop_info.insert({"error_message", json::Node(std::string("not found"))});
-        
-    }else{
-        std::vector<json::Node> buses_of_stop;
-        for(const auto& bus_name : transport_catalogue_.GetBusesOfStop(stop)){
-            std::string temp_name{bus_name.data(),bus_name.size()};
-            buses_of_stop.push_back(json::Node(temp_name));
+    if (stop == nullptr) {
+            return json::Document(
+                json::Builder()
+                .StartDict()
+                .Key("request_id").Value(request.id)
+                .Key("error_message").Value("not found")
+                .EndDict()
+                .Build());
         }
-        stop_info.insert({"buses",json::Node(buses_of_stop)});
-    }
-    return json::Node(stop_info);
+        else {
+            json::Array buses;
+            for (const auto& bus_name : transport_catalogue_.GetBusesOfStop(stop)) {
+                buses.push_back(json::Node{ std::string(bus_name) });
+            }
+            return json::Document(
+                json::Builder()
+                .StartDict()
+                .Key("buses").Value(buses)
+                .Key("request_id").Value(request.id)
+                .EndDict()
+                .Build());
+        }
 }
 
 void RequestHandler::FillCatalogue(const std::deque<domain::RequestToAdd>& base_requests_){
@@ -111,8 +126,7 @@ std::vector<std::string_view> RequestHandler::ParseBusRoute(const std::vector<st
     return result;
 }
 
-json::Node RequestHandler::RenderMap(const domain::RequestToStat& request){
-
+json::Document RequestHandler::RenderMap(const domain::RequestToStat& request){
     std::vector<domain::Bus*> vec;
 
     for(const auto& [name, bus] : transport_catalogue_.GetBusesMap()){
@@ -124,12 +138,14 @@ json::Node RequestHandler::RenderMap(const domain::RequestToStat& request){
     
     std::ostringstream strm;
     render_.Render(strm, vec);
-
-    std::map<std::string, json::Node> result;
-    result.insert({"map" , json::Node(strm.str())});
-    result.insert({"request_id" , json::Node(request.id)});
-
-    return json::Node(result);
+    
+    return json::Document(
+            json::Builder()
+            .StartDict()
+            .Key("map").Value(strm.str())
+            .Key("request_id").Value(request.id)
+            .EndDict()
+            .Build());
 }
 
 }//namespace request_handler

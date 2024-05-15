@@ -17,10 +17,13 @@ public:
     using runtime_error::runtime_error;
 };
 
-class Node final : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
+class Node final
+    : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
 public:
     using variant::variant;
-    using Value = variant;
+	using Value = variant;
+    
+    Node(Value value);
 
     bool IsInt() const;
 
@@ -46,14 +49,17 @@ public:
 
     const std::string& AsString() const;
 
-    bool IsMap() const;
+    bool IsDict() const;
 
-    const Dict& AsMap() const;
-
-    bool operator==(const Node& rhs) const;
+    const Dict& AsDict() const;
 
     const Value& GetValue() const;
 
+    Value& GetValue();
+
+    bool operator==(const Node& rhs) const {
+        return GetValue() == rhs.GetValue();
+    }
 };
 
 inline bool operator!=(const Node& lhs, const Node& rhs) {
