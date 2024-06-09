@@ -8,7 +8,8 @@ namespace json_reader {
     
     void JsonReader::ReadJson(std::istream& input){
         json::Document input_ = json::Load(input);
-        if(!base_requests_.empty())base_requests_.clear();//если снова вызываем чтение - чистим базу запросов
+        //если снова вызываем чтение - чистим базу запросов
+        if(!base_requests_.empty())base_requests_.clear();
         if(!stat_requests_.empty())stat_requests_.clear();
         
         if(input_.GetRoot().AsDict().contains("base_requests")){
@@ -21,6 +22,10 @@ namespace json_reader {
                 
         if(input_.GetRoot().AsDict().contains("render_settings")){
             ParseRenderSettings(input_.GetRoot().AsDict().at("render_settings").AsDict());
+        }
+
+        if(input_.GetRoot().AsDict().contains("routing_settings")){
+            ParseRouteSettings(input_.GetRoot().AsDict().at("routing_settings").AsDict());
         }
         
     }
@@ -35,6 +40,10 @@ namespace json_reader {
     
     map_renderer::RendererSettings JsonReader::GetRenderSettings()const{
         return render_data_;
+    }
+
+    transport_router::RoutingSettings JsonReader::GetRoutingSettings() const{
+        return routing_settings_;
     }
     
     svg::Color ParsingColor(const json::Node& node){
@@ -82,6 +91,15 @@ namespace json_reader {
             }
         }
         
+    }
+
+    void JsonReader::ParseRouteSettings(const std::map<std::string, json::Node> &settings){
+        if(settings.contains("bus_wait_time")){
+            routing_settings_.bus_wait_time = settings.at("bus_wait_time").AsDouble();
+        }
+        if(settings.contains("bus_velocity")){
+            routing_settings_.bus_velocity = settings.at("bus_velocity").AsDouble();
+        }
     }
     
     void JsonReader::ParseDataRequests(const json::Node& arr_base){
@@ -149,6 +167,13 @@ namespace json_reader {
                 req.type = domain::RequestType::render_map;
                 req.name = "map";
                 req.id = elem.AsDict().at("id").AsInt();
+            }
+
+            if(elem.AsDict().at("type").AsString()=="Route"){
+                req.type = domain::RequestType::route;
+                req.id = elem.AsDict().at("id").AsInt();
+                req.from = elem.AsDict().at("from").AsString();
+                req.to = elem.AsDict().at("to").AsString();
             }
 
             stat_requests_.push_back(std::move(req));

@@ -8,12 +8,15 @@
 #include <map>
 
 namespace domain{
-
+//структуры, которые используются больше чем в одном классе, находятся тут
+    
+//остановка
 struct Stop {
     std::string name;
     geo::Coordinates coordinates;
 };
 
+//автобус
 struct Bus {
     std::string name;
     std::vector<Stop*>stops;
@@ -21,15 +24,38 @@ struct Bus {
     bool is_circular = false;
 };    
 
+//типы запросов к базе данных    
 enum RequestType {
     null = 0,
     add_stop,
     add_bus,
     find_stop,
     find_bus,
-    render_map
+    render_map,
+    route
 };
 
+//типы частей пути (ожидание на остановке/поездка на автобусе)    
+enum RoutePartType {
+    stop,
+    bus
+};
+
+//часть пути    
+struct RoutePart {
+    RoutePartType type;
+    std::string_view name;
+    double time = 0.0;
+    int span_count = 0;
+};
+
+//информация по полному пути    
+struct RouteInfo {
+    double total_time = 0.0;
+    std::vector<RoutePart> parts;
+};
+
+//запрос на добавление в базу    
 struct RequestToAdd {
     RequestToAdd() = default;
 
@@ -42,13 +68,16 @@ struct RequestToAdd {
 
 };
 
+//запроса на вывод данных    
 struct RequestToStat {
     RequestToStat() = default;
 
     RequestType type = RequestType::null; //type of add request
     std::string name = ""; //bus or stop name
     int id = 0; // stat request id
+    std::string from = ""; // route request stop from
+    std::string to = ""; // route request stop to
 
 };
 
-}//domain
+}//namepsace domain

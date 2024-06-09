@@ -15,25 +15,28 @@ namespace transport_catalogue
 class TransportCatalogue {
     public:
     
-	void AddStop(std::string_view stop_name, const geo::Coordinates& coordinates);
-    const Stop* FindStop(std::string_view stop_name)const;
+	void AddStop(std::string_view stop_name, const geo::Coordinates& coordinates); //добавляем остановку
+    const Stop* FindStop(std::string_view stop_name)const; //ищем остановку
     
-    void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool is_circular);
-    const Bus* FindBus(std::string_view bus_name)const;
+    void AddBus(std::string_view bus_name, const std::vector<std::string_view>& stops, bool is_circular); //добавляем автобус
+    const Bus* FindBus(std::string_view bus_name)const; //ищем автобус
     
-    std::pair<int, double> GetBusDistAndCurvature(const Bus* bus)const;
+    std::pair<int, double> GetBusDistAndCurvature(const Bus* bus)const; //получаем дистанцию и кривизну между остановками автобуса
         
-    std::set<std::string_view> GetBusesOfStop(const Stop* stop)const;
+    std::set<std::string_view> GetBusesOfStop(const Stop* stop)const;//получаем автобусы для остановки
     
-    void SetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs, int distance);
-    int GetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs)const;
+    void SetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs, int distance); //устанавливаем дистанцию между 2 остановками
+    int GetStopsDistance(const Stop* stop_lhs, const Stop* stop_rhs)const; //получаем дистанцию между 2 остановками
 
-    std::unordered_map<std::string_view, Stop*> GetStopsMap()const;
-    std::unordered_map<std::string_view, Bus*> GetBusesMap()const;
+    std::unordered_map<std::string_view, Stop*> GetStopsMap()const; //получаем словарь остановок
+    std::unordered_map<std::string_view, Bus*> GetBusesMap()const; //получаем словарь автобусов
+
+    std::vector<const Bus*> GetBusesVec() const; //получаем вектор всех автобусов 
+    std::vector<const Stop*> GetStopsVec() const; //получаем вектор всех остановок
 
     private:
     
-    struct StopsDistanceHasher {
+    struct StopsDistanceHasher { //хэшер для словаря дистанций
         size_t operator()(const std::pair <const Stop*, const Stop*> stops) const {
             size_t stop_first_hash = std::hash<const void*>{}(stops.first);
             size_t stop_second_hash = std::hash<const void*>{}(stops.second);
@@ -41,16 +44,16 @@ class TransportCatalogue {
         }
     };
     
-    void FillStopnameToBus(const Bus* bus);
+    void FillStopnameToBus(const Bus* bus); //заполняем stop_to_busname_
     
-    std::deque<Stop> all_stops_;
-    std::unordered_map<std::string_view, Stop*, std::hash<std::string_view> > stopname_to_stop_;
+    std::deque<Stop> all_stops_; //все остановки
+    std::unordered_map<std::string_view, Stop*, std::hash<std::string_view> > stopname_to_stop_; //(имя остановки - остановка*)
     
-    std::deque<Bus> all_buses_;
-    std::unordered_map<std::string_view, Bus*, std::hash<std::string_view> > busname_to_bus_;
+    std::deque<Bus> all_buses_; //все автобусы
+    std::unordered_map<std::string_view, Bus*, std::hash<std::string_view> > busname_to_bus_; //(имя автобуса - автобус*)
 
-    std::unordered_map<const Stop*, std::set<std::string_view>> stop_to_busname_;
+    std::unordered_map<const Stop*, std::set<std::string_view>> stop_to_busname_; //(остановка* - список автобусов для остановки)
     
-    std::unordered_map<std::pair<const Stop*, const Stop*>, int, StopsDistanceHasher> stops_distances_;
+    std::unordered_map<std::pair<const Stop*, const Stop*>, int, StopsDistanceHasher> stops_distances_;//дистанции между 2 остановок
 };
 }

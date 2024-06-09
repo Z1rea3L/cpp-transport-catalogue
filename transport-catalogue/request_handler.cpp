@@ -12,9 +12,19 @@ void RequestHandler::SetRenderSettings(map_renderer::RendererSettings settings){
     render_.SetRenderSettings(settings);
 }
 
+void RequestHandler::SetRouterSettings(transport_router::RoutingSettings settings){
+    transport_router_.SetRouterSettings(settings);
+}
+    
+void RequestHandler::MakeRouter(){
+    transport_router_.ClearRouter();
+    transport_router_.FillRouterData(transport_catalogue_);
+}
+
 void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>& stat_requests, std::ostream& output){
     json::Array result;
     result.reserve(stat_requests.size());
+    
     for(const auto& request : stat_requests){
         
         if(request.type == domain::RequestType::find_bus){
@@ -27,6 +37,10 @@ void RequestHandler::ProcessStatRequests(const std::deque<domain::RequestToStat>
 
         if(request.type == domain::RequestType::render_map){
             result.push_back(RenderMap(request).GetRoot());
+        }
+
+        if(request.type == domain::RequestType::route){
+            result.push_back(ParseRouteInfo(request).GetRoot());
         }
     }
     json::Print(json::Document{result}, output);
@@ -70,7 +84,6 @@ json::Document RequestHandler::ParseStopInfo(const domain::RequestToStat& reques
                 .EndDict()
                 .Build());
         }
-        else {
             json::Array buses;
             for (const auto& bus_name : transport_catalogue_.GetBusesOfStop(stop)) {
                 buses.push_back(json::Node{ std::string(bus_name) });
@@ -82,9 +95,58 @@ json::Document RequestHandler::ParseStopInfo(const domain::RequestToStat& reques
                 .Key("request_id").Value(request.id)
                 .EndDict()
                 .Build());
-        }
 }
 
+json::Document RequestHandler::ParseRouteInfo(const RequestToStat &request){
+    auto route_info = RequestHandler::BuildRoute(request.from, request.to);
+    
+    if (!route_info) {
+        return json::Document(
+            json::Builder()
+            .StartDict()
+            .Key("request_id").Value(request.id)
+            .Key("error_message").Value("not found")
+            .EndDict()
+            .Build());
+    }
+    
+    json::Array array_items;
+    for (auto& part : route_info->parts) {
+        json::Dict dict_items;
+
+        if (part.type == domain::RoutePartType::stop) {
+            dict_items.insert({"type","Wait"});
+            dict_items.insert({"stop_name",std::string(part.name)});
+            dict_items.insert({"time",part.time});
+
+        } else if (part.type == domain::RoutePartType::bus) {
+            dict_items.insert({"type","Bus"});
+            dict_items.insert({"bus",std::string(part.name)});
+            dict_items.insert({"span_count",part.span_count});
+            dict_items.insert({"time",part.time});
+        }
+        array_items.push_back(dict_items);
+    }
+    
+    return json::Document(
+        json::Builder()
+        .StartDict()
+        .Key("request_id").Value(request.id)
+        .Key("total_time").Value(route_info->total_time)
+        .Key("items").Value(array_items)
+        .EndDict()
+        .Build());
+}
+    
+std::optional<domain::RouteInfo> RequestHandler::BuildRoute(std::string_view from, std::string_view to){
+    const domain::Stop* stop_from = transport_catalogue_.FindStop(from);
+    const domain::Stop* stop_to = transport_catalogue_.FindStop(to);
+    if(stop_from==nullptr||stop_to==nullptr){
+        return std::nullopt;
+    }
+    return transport_router_.BuildRoute(stop_from,stop_to);
+}
+    
 void RequestHandler::FillCatalogue(const std::deque<domain::RequestToAdd>& base_requests_){
     for(const auto& elem : base_requests_){
         if(elem.type==domain::RequestType::add_stop){

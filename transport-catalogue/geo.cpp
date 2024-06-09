@@ -4,7 +4,8 @@
 #include <cmath>
 
 namespace geo {
-
+    
+//расчет дистанции по координатам
 double ComputeDistance(Coordinates from, Coordinates to) {
     using namespace std;
     const double dr = M_PI / 180.0;

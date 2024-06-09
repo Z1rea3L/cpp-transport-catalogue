@@ -75,7 +75,25 @@ namespace transport_catalogue
     std::unordered_map<std::string_view, Bus*> TransportCatalogue::GetBusesMap() const{
         return busname_to_bus_;
     }
-    
+
+    std::vector<const Bus*> TransportCatalogue::GetBusesVec() const {
+        std::vector<const Bus*> result;
+        result.reserve(all_buses_.size());
+        for (const Bus& bus : all_buses_) {
+            result.push_back(&bus);
+        }
+        return result;
+    }
+
+    std::vector<const Stop*> TransportCatalogue::GetStopsVec() const {
+        std::vector<const Stop*> result;
+        result.reserve(all_stops_.size());
+        for (const Stop& stop : all_stops_) {
+            result.push_back(&stop);
+        }
+        return result;
+    }
+
     std::pair<int,double> TransportCatalogue::GetBusDistAndCurvature(const Bus* bus)const{
         double dist_by_coordinates = 0.;
         int distance_by_stops = 0;

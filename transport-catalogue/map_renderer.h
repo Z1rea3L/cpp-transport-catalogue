@@ -15,8 +15,7 @@ namespace map_renderer{
 inline const double EPSILON = 1e-6;
 bool IsZero(double value);
 
-struct RendererSettings
-{
+struct RendererSettings { //настройки рендера
     RendererSettings() = default;
 
     double width_ = 0.0;
@@ -97,8 +96,7 @@ private:
 
 
 
-class MapRenderer
-{
+class MapRenderer{
 public:
     explicit MapRenderer() = default;
     void SetRenderSettings(RendererSettings& settings);

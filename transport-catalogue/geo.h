@@ -1,7 +1,8 @@
 #pragma once
 
 namespace geo {
-
+    
+//структура координаты
 struct Coordinates {
     double lat;
     double lng;
