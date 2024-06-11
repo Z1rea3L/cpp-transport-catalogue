@@ -44,17 +44,24 @@ namespace transport_router {
 
     void TransportRouter::FillGrafByBuses(const transport_catalogue::TransportCatalogue& catalogue){
         std::vector<const domain::Bus*> buses = catalogue.GetBusesVec();
+        
+        const double meters_per_km = 1000.0;
+        const double min_in_hour = 60.0;
+        
         for (const domain::Bus* bus : buses) {
             std::vector<domain::Stop*> stops = bus->stops;
 
             if (bus->is_circular == false) {
                 stops.insert(stops.end(),stops.rbegin()+1,stops.rend());
             }
-
-            for (int count_from = 0; count_from < stops.size()-1 ; ++count_from) {
+            
+            const int stops_size_to = stops.size();
+            const int stops_size_from =  stops.size()-1;
+            
+            for (int count_from = 0; count_from < stops_size_from ; ++count_from) {
                 int distance = 0;
-
-                for (int count_to = count_from+1 ; count_to < stops.size(); ++count_to) {
+                
+                for (int count_to = count_from+1 ; count_to < stops_size_to; ++count_to) {
                     if (stops[count_from] == stops[count_to]) {
                         continue;
                     }
@@ -63,7 +70,7 @@ namespace transport_router {
                     graph::VertexId end = stop_to_vertex_.at(stops[count_from])+1;
 
                     distance += catalogue.GetStopsDistance(stops[count_to-1], stops[count_to]);
-                    double weight = 60.0*(distance/settings_.bus_velocity/1000.0);
+                    double weight = min_in_hour*(distance/settings_.bus_velocity/meters_per_km);
                     
                     graph::Edge<double> edge{end, start, weight};
                     graph::EdgeId edge_id = graph_ptr_->AddEdge(edge);
